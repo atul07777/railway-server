@@ -1,12 +1,42 @@
 const express = require("express");
-const app = express();
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Create uploads folder if it doesn't exist
+const UPLOAD_DIR = path.join(__dirname, "uploads");
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR);
+
+// Configure multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+  filename: (req, file, cb) => cb(null, file.originalname),
+});
+const upload = multer({ storage });
+
+// Serve uploaded files statically
+app.use("/files", express.static(UPLOAD_DIR));
+
+// Homepage
 app.get("/", (req, res) => {
-  res.send("🚀 Server is running!");
+  res.send(`
+    <h1>📂 Personal File Server</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="file"/>
+      <button type="submit">Upload</button>
+    </form>
+    <p>Access files: <a href="/files">/files</a></p>
+  `);
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Handle file upload
+app.post("/upload", upload.single("file"), (req, res) => {
+  if (!req.file) return res.send("No file uploaded!");
+  res.send(`✅ Uploaded: ${req.file.originalname} <br><a href="/">Go back</a>`);
 });
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+

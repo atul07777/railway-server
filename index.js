@@ -7,8 +7,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Create uploads folder if it doesn't exist
-const UPLOAD_DIR = path.join(__dirname, "uploads");
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR);
+const UPLOAD_DIR = "/temp/uploads";
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, {recursive: true});
+}
 
 // Configure multer
 const storage = multer.diskStorage({
